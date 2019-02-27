@@ -112,7 +112,7 @@ module.exports = (app, appConfig) => {
                 next(err)
             })
         } else if(req.accepts(options.accepts)) {
-            const nonce = res.locals.cspNonce = uuidv4()
+            const nonce = res.locals.cspNonce = uuidv4().replace(/-/g, '')
             res.set('x-csp-nonce', nonce)
             cspMiddleware(req, res, next)
         } else {
