@@ -24,6 +24,7 @@ module.exports = (app, appConfig) => {
         console.log('[hc-mid-csp] use config.cspString as directives')
     }
     const options = _.merge({
+        accepts: 'text/html',
         // Specify directives as normal.
         directives: {
             // defaultSrc: ["'self'", 'default.com'],
@@ -101,10 +102,8 @@ module.exports = (app, appConfig) => {
     }
 
     return (req, res, next) => {
-        const nonce = res.locals.cspNonce = uuidv4()
-        res.set('x-csp-nonce', nonce)
         const apiIndex = localReports.indexOf(prefix + req.path)
-        if(apiIndex >= 0 && isCSP(req)) {
+        if(apiIndex >= 0 && isCSPPost(req)) {
             json(req, req.headers).then(val=>{
                 console.log('csp-report:', val)
                 res.status(204).end()
@@ -112,12 +111,16 @@ module.exports = (app, appConfig) => {
                 console.log('csp-report err:', err)
                 next(err)
             })
+        } else if(req.accepts(options.accepts)) {
+            const nonce = res.locals.cspNonce = uuidv4()
+            res.set('x-csp-nonce', nonce)
+            cspMiddleware(req, res, next)
         } else {
-            cspMiddleware(req, res, next);
+            next()
         }
     }
 }
 
-function isCSP(req){
-    return req.method === 'POST' && (req.get('content-type')||'').indexOf('csp-report')>0
+function isCSPPost(req){
+    return req.method === 'POST' && (req.get('content-type')||'').indexOf('csp-report') > 0
 }

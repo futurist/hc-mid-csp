@@ -13,6 +13,7 @@ npm i -S hc-mid-csp
 `config` options see [helmet-csp](https://github.com/helmetjs/csp), with below different:
 
 - add `cspString` option to allow set `CSP` content directly, if empty, fallback to `directives`
+- add `accepts` option to only apply headers according to [req.accepts](https://expressjs.com/en/api.html#req.accepts), default is `text/html`
 - `directives` also allow `string` type value, to prevent merge config of `hc-bee`
 - `${prefix}` and `${nonce}` can be put into string as placeholder
 - `directives.reportUri` default value: `${prefix}/__csp__`
