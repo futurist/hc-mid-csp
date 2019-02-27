@@ -17,6 +17,7 @@ npm i -S hc-mid-csp
 - `${prefix}` and `${nonce}` can be put into string as placeholder
 - `directives.reportUri` default value: `${prefix}/__csp__`
 - `res.locals.cspNonce` contains the `nonce` value
+- add `x-csp-nonce` headers
 
 ### example
 

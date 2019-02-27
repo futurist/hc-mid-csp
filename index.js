@@ -101,7 +101,8 @@ module.exports = (app, appConfig) => {
     }
 
     return (req, res, next) => {
-        res.locals.cspNonce = uuidv4()
+        const nonce = res.locals.cspNonce = uuidv4()
+        res.set('x-csp-nonce', nonce)
         const apiIndex = localReports.indexOf(prefix + req.path)
         if(apiIndex >= 0 && isCSP(req)) {
             json(req, req.headers).then(val=>{
