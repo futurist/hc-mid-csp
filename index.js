@@ -111,7 +111,7 @@ module.exports = (app, appConfig) => {
                 console.log('csp-report err:', err)
                 next(err)
             })
-        } else if(req.accepts(options.accepts)) {
+        } else if(hasAccepts(req) && req.accepts(options.accepts)) {
             const nonce = res.locals.cspNonce = uuidv4()
             res.set('x-csp-nonce', nonce)
             cspMiddleware(req, res, next)
@@ -119,6 +119,10 @@ module.exports = (app, appConfig) => {
             next()
         }
     }
+}
+
+function hasAccepts(req) {
+    return req.headers.accept && req.headers.accept != '*/*'
 }
 
 function isCSPPost(req){
