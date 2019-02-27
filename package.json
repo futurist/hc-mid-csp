@@ -1,0 +1,21 @@
+{
+  "name": "hc-mid-csp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "array-flat-polyfill": "^1.0.0",
+    "camelcase": "^5.0.0",
+    "content-security-policy-parser": "^0.1.1",
+    "get-body": "^1.0.3",
+    "helmet-csp": "^2.7.1",
+    "lodash": "^4.17.11",
+    "uuid": "^3.3.2"
+  }
+}
