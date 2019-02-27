@@ -16,6 +16,7 @@ npm i -S hc-mid-csp
 - `directives` also allow `string` type value, to prevent merge config of `hc-bee`
 - `${prefix}` and `${nonce}` can be put into string as placeholder
 - `directives.reportUri` default value: `${prefix}/__csp__`
+- `res.locals.cspNonce` contains the `nonce` value
 
 ### example
 
