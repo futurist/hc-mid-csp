@@ -96,7 +96,7 @@ module.exports = (app, appConfig) => {
 
     const cspMiddleware = csp(options)
     
-    console.log('csp report url:', options, strReports)
+    console.log('csp report config:', options)
     if(localReports.some(uri => !uri.startsWith('/'))) {
         throw new Error('local reportUri must starts with /, but value is:' + reportUri)
     }
