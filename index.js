@@ -5,6 +5,7 @@ const {json} = require('get-body')
 const uuidv4 = require('uuid/v4')
 const cspParser = require('content-security-policy-parser')
 const camelcase = require('camelcase')
+const useragent = require('useragent')
 const {isArray} = Array
 
 function parseCSPString(str) {
@@ -69,10 +70,18 @@ module.exports = (app, appConfig) => {
     // replace ${nonce} with function
     _.forEach(options.directives, (rule, name, obj)=>{
         if(typeof rule==='string') rule = obj[name] = [obj[name]]
-        if(!isArray(rule)) return
-        _.forEach(rule, (v,i,obj)=>{
-            if(typeof v==='string' && v.indexOf('${nonce}')>-1) {
-                obj[i] = (req, res) => v.replace('${nonce}', res.locals.cspNonce)
+        if(!isArray(rule) || name==='reportUri') return
+        _.forEach(rule, (v,key,obj)=>{
+            if(typeof v==='string') {
+                obj[key] = (req, res) => {
+                    let ret = v.replace('${nonce}', res.locals.cspNonce)
+                    const userAgent = useragent.parse(req.headers['user-agent'])
+                    // safari don't support 'report-sample'
+                    if(/Safari/i.test(userAgent.family)){
+                        ret = ret.replace("'report-sample'", '')
+                    }
+                    return ret
+                }
             }
         })
     })
@@ -106,6 +115,7 @@ module.exports = (app, appConfig) => {
         if(apiIndex >= 0 && isCSPPost(req)) {
             json(req, req.headers).then(val=>{
                 console.log('csp-report:', val)
+                console.log('user-agent:', req.headers['user-agent'])
                 res.status(204).end()
             }).catch(err=>{
                 console.log('csp-report err:', err)
