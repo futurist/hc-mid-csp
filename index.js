@@ -124,7 +124,7 @@ module.exports = (app, appConfig) => {
             })
         } else if(
             req.accepts(options.accepts)
-            && (res.get('Content-Type') && String(res.get('Content-Type')).indexOf(mime.getType(options.accepts))>-1)
+            && (!res.get('Content-Type') || String(res.get('Content-Type')).indexOf(mime.getType(options.accepts))>-1)
         ) {
             const nonce = res.locals.cspNonce = uuidv4().replace(/-/g, '')
             res.set('x-csp-nonce', nonce)
