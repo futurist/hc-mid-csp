@@ -6,6 +6,7 @@ const uuidv4 = require('uuid/v4')
 const cspParser = require('content-security-policy-parser')
 const camelcase = require('camelcase')
 const useragent = require('useragent')
+const mime = require('mime')
 const {isArray} = Array
 
 function parseCSPString(str) {
@@ -121,7 +122,10 @@ module.exports = (app, appConfig) => {
                 console.log('csp-report err:', err)
                 next(err)
             })
-        } else if(req.accepts(options.accepts)) {
+        } else if(
+            req.accepts(options.accepts)
+            && String(res.get('Content-Type')).indexOf(mime.getType(options.accepts))>-1
+        ) {
             const nonce = res.locals.cspNonce = uuidv4().replace(/-/g, '')
             res.set('x-csp-nonce', nonce)
             cspMiddleware(req, res, next)
