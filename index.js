@@ -75,11 +75,11 @@ module.exports = (app, appConfig) => {
             if(typeof v==='string') {
                 obj[key] = (req, res) => {
                     let ret = v.replace('${nonce}', res.locals.cspNonce)
-                    const userAgent = useragent.parse(req.headers['user-agent'])
+                    // const userAgent = useragent.parse(req.headers['user-agent'])
                     // safari don't support 'report-sample'
-                    if(/Safari/i.test(userAgent.family)){
-                        ret = ret.replace("'report-sample'", '')
-                    }
+                    // if(/Safari/i.test(userAgent.family)){
+                    //     ret = ret.replace("'report-sample'", '')
+                    // }
                     return ret
                 }
             }
