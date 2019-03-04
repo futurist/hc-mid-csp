@@ -5,6 +5,7 @@ const {json} = require('get-body')
 const uuidv4 = require('uuid/v4')
 const cspParser = require('content-security-policy-parser')
 const camelcase = require('camelcase')
+const replaceString = require('replace-string')
 const useragent = require('useragent')
 const mime = require('mime')
 const {isArray} = Array
@@ -74,6 +75,7 @@ module.exports = (app, appConfig) => {
         if(!isArray(rule) || name==='reportUri') return
         _.forEach(rule, (v,key,obj)=>{
             if(typeof v==='string') {
+                const remove = _.get(options, 'remove.'+key) || []
                 obj[key] = (req, res) => {
                     let ret = v.replace('${nonce}', res.locals.cspNonce)
                     // const userAgent = useragent.parse(req.headers['user-agent'])
@@ -81,6 +83,7 @@ module.exports = (app, appConfig) => {
                     // if(/Safari/i.test(userAgent.family)){
                     //     ret = ret.replace("'report-sample'", '')
                     // }
+                    ret = remove.reduce((ret,c)=>replaceString(ret, c, ''), ret)
                     return ret
                 }
             }
