@@ -112,18 +112,24 @@ module.exports = (app, appConfig) => {
     }
 
     return (req, res, next) => {
+        const signature = req.headers['signature']
+        const uaString = req.headers['user-agent']
+        const uaObj = useragent.parse(uaString)
         const apiIndex = localReports.indexOf(prefix + req.path)
         if(apiIndex >= 0 && isCSPPost(req)) {
             json(req, req.headers).then(val=>{
                 console.log('csp-report:', val)
-                console.log('user-agent:', req.headers['user-agent'])
+                console.log('user-agent:', uaString)
                 res.status(204).end()
             }).catch(err=>{
                 console.log('csp-report err:', err)
                 next(err)
             })
         } else if(
-            req.accepts(options.accepts)
+            uaString && uaObj != null
+            && !/HttpClient/i.test(uaObj.family)
+            && !signature
+            && req.accepts(options.accepts)
             && (!res.get('Content-Type') || String(res.get('Content-Type')).indexOf(mime.getType(options.accepts))>-1)
         ) {
             const nonce = res.locals.cspNonce = uuidv4().replace(/-/g, '')
