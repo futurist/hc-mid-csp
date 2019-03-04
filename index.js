@@ -73,9 +73,9 @@ module.exports = (app, appConfig) => {
     _.forEach(options.directives, (rule, name, obj)=>{
         if(typeof rule==='string') rule = obj[name] = [obj[name]]
         if(!isArray(rule) || name==='reportUri') return
+        const remove = _.get(options, 'remove.'+name) || []
         _.forEach(rule, (v,key,obj)=>{
             if(typeof v==='string') {
-                const remove = _.get(options, 'remove.'+key) || []
                 obj[key] = (req, res) => {
                     let ret = v.replace('${nonce}', res.locals.cspNonce)
                     // const userAgent = useragent.parse(req.headers['user-agent'])
