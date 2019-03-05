@@ -8,6 +8,7 @@ const camelcase = require('camelcase')
 const replaceString = require('replace-string')
 const useragent = require('useragent')
 const mime = require('mime')
+const check = require('./check')
 const {isArray} = Array
 
 function parseCSPString(str) {
@@ -27,6 +28,8 @@ module.exports = (app, appConfig) => {
         console.log('[hc-mid-csp] use config.cspString as directives')
     }
     const options = _.merge({
+        override: [],
+        ignore: [],
         accepts: 'text/html',
         // Specify directives as normal.
         directives: {
@@ -73,7 +76,6 @@ module.exports = (app, appConfig) => {
     _.forEach(options.directives, (rule, name, obj)=>{
         if(typeof rule==='string') rule = obj[name] = [obj[name]]
         if(!isArray(rule) || name==='reportUri') return
-        const remove = _.get(options, 'remove.'+name) || []
         _.forEach(rule, (v,key,obj)=>{
             if(typeof v==='string') {
                 obj[key] = (req, res) => {
@@ -83,7 +85,16 @@ module.exports = (app, appConfig) => {
                     // if(/Safari/i.test(userAgent.family)){
                     //     ret = ret.replace("'report-sample'", '')
                     // }
-                    ret = remove.reduce((ret,c)=>replaceString(ret, c, ''), ret)
+                    const entry = check(options.override, req.url, req.method)
+                    if(entry) {
+                        const opt = entry.find(isObject)
+                        if(opt) {
+                            const remove = _.get(opt, 'remove.'+name) || []
+                            const add = _.get(opt, 'add.'+name) || []
+                            ret = remove.reduce((ret,c)=>replaceString(ret, c, ''), ret)
+                            ret = add.concat(ret).join(' ')
+                        }
+                    }
                     return ret
                 }
             }
@@ -119,6 +130,7 @@ module.exports = (app, appConfig) => {
         const uaString = req.headers['user-agent']
         const uaObj = useragent.parse(uaString)
         const apiIndex = localReports.indexOf(prefix + req.path)
+        const isIgnore = check(options.ignore, req.path, req.method)
         if(apiIndex >= 0 && isCSPPost(req)) {
             json(req, req.headers).then(val=>{
                 console.log('csp-report:', val)
@@ -129,7 +141,8 @@ module.exports = (app, appConfig) => {
                 next(err)
             })
         } else if(
-            uaString && uaObj != null
+            !isIgnore
+            && uaString && uaObj != null
             && !/HttpClient/i.test(uaObj.family)
             && !signature
             && req.accepts(options.accepts)
@@ -150,4 +163,8 @@ function hasAccepts(req) {
 
 function isCSPPost(req){
     return req.method === 'POST' && (req.get('content-type')||'').indexOf('csp-report') > 0
+}
+
+function isObject(val) {
+    return typeof val==='object' && val
 }
