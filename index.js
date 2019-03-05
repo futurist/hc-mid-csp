@@ -31,6 +31,8 @@ module.exports = (app, appConfig) => {
         override: [],
         ignore: [],
         accepts: 'text/html',
+        // generate `child-src` using frameSrc + workerSrc
+        generateChildSrc: true,
         // Specify directives as normal.
         directives: {
             // defaultSrc: ["'self'", 'default.com'],
@@ -117,6 +119,13 @@ module.exports = (app, appConfig) => {
 
     // disable reportUri if it's empty
     options.directives.reportUri = strReports || false
+
+    if(options.generateChildSrc) {
+        const childSrc = [].concat(options.directives.workerSrc, options.directives.frameSrc).filter(Boolean)
+        if(childSrc.length>0) {
+            options.directives.childSrc = childSrc
+        }
+    }
 
     const cspMiddleware = csp(options)
     
