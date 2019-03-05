@@ -120,7 +120,7 @@ module.exports = (app, appConfig) => {
     // disable reportUri if it's empty
     options.directives.reportUri = strReports || false
 
-    if(options.generateChildSrc) {
+    if(options.generateChildSrc && !_.isEmpty(options.directives.workerSrc)) {
         const childSrc = [].concat(options.directives.workerSrc, options.directives.frameSrc).filter(Boolean)
         if(childSrc.length>0) {
             options.directives.childSrc = childSrc
