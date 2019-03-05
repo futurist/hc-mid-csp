@@ -85,12 +85,12 @@ module.exports = (app, appConfig) => {
                     // if(/Safari/i.test(userAgent.family)){
                     //     ret = ret.replace("'report-sample'", '')
                     // }
-                    const entry = check(options.override, req.url, req.method)
+                    const entry = check(options.override, req.path, req.method)
                     if(entry) {
                         const opt = entry.find(isObject)
                         if(opt) {
-                            const remove = _.get(opt, 'remove.'+name) || []
-                            const add = _.get(opt, 'add.'+name) || []
+                            const remove = [].concat(_.get(opt, 'remove.'+name) || []).flatMap(v=>v.split(/\s+/))
+                            const add = [].concat(_.get(opt, 'add.'+name) || []).flatMap(v=>v.split(/\s+/))
                             ret = remove.reduce((ret,c)=>replaceString(ret, c, ''), ret)
                             ret = add.concat(ret).join(' ')
                         }
