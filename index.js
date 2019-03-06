@@ -1,4 +1,5 @@
 require('array-flat-polyfill')
+const url = require('url')
 const csp = require('helmet-csp')
 const _ = require('lodash')
 const {json} = require('get-body')
@@ -33,6 +34,11 @@ module.exports = (app, appConfig) => {
         accepts: 'text/html',
         // generate `child-src` using frameSrc + workerSrc
         generateChildSrc: true,
+        // generate http:// for https://
+        generateMixed: {
+            mediaSrc: true,
+            imgSrc: true
+        },
         // Specify directives as normal.
         directives: {
             // defaultSrc: ["'self'", 'default.com'],
@@ -97,6 +103,21 @@ module.exports = (app, appConfig) => {
                             ret = add.concat(ret).join(' ')
                         }
                     }
+
+                    const otherProtocol = findOtherProtocol(req.protocol)
+                    if(options.generateMixed[name] && otherProtocol) {
+                        ret = ret.split(/\s+/).map(x=>{
+                            x = x.trim()
+                            if(x[0]!="'" && !x.endsWith(':') && x.indexOf('.')>-1 && isProtoless(x)) {
+                                const newX = `${otherProtocol}://${x}`
+                                if(ret.indexOf(newX)<0) {
+                                    x = x + ' ' + newX
+                                }
+                            }
+                            return x
+                        }).join(' ')
+                    }
+
                     return ret
                 }
             }
@@ -114,7 +135,7 @@ module.exports = (app, appConfig) => {
 
     // check local router
     let localReports = reportUri
-        .filter(uri => !/^https?:\/\//i.test(uri))
+        .filter(uri => isProtoless(uri))
     const strReports = reportUri.join(' ')
 
     // disable reportUri if it's empty
@@ -176,4 +197,19 @@ function isCSPPost(req){
 
 function isObject(val) {
     return typeof val==='object' && val
+}
+
+function isProtoless (tUrl) {
+    const parsed = url.parse(tUrl)
+    return !parsed.protocol && !!parsed.pathname
+}
+
+function findOtherProtocol (protocol) {
+    switch(protocol) {
+        case 'http': return 'https'
+        case 'https': return 'http'
+        case 'wss': return 'ws'
+        case 'ws': return 'wss'
+        default: return
+    }
 }
