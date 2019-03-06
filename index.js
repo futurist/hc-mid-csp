@@ -2,7 +2,7 @@ require('array-flat-polyfill')
 const url = require('url')
 const csp = require('helmet-csp')
 const _ = require('lodash')
-const {json} = require('get-body')
+const {text} = require('get-body')
 const uuidv4 = require('uuid/v4')
 const cspParser = require('content-security-policy-parser')
 const camelcase = require('camelcase')
@@ -162,9 +162,21 @@ module.exports = (app, appConfig) => {
         const apiIndex = localReports.indexOf(prefix + req.path)
         const isIgnore = check(options.ignore, req.path, req.method)
         if(apiIndex >= 0 && isCSPPost(req)) {
-            json(req, req.headers).then(val=>{
-                console.log('csp-report:', val)
+            text(req, req.headers).then(val=>{
+                const json = JSON.parse(val)
+                console.log('csp-report:', json)
                 console.log('user-agent:', uaString)
+                if(typeof options.onReport === 'function'){
+                    options.onReport({
+                        app,
+                        config: appConfig,
+                        text: val,
+                        json,
+                        ua: uaObj,
+                        req,
+                        res
+                    })
+                }
                 res.status(204).end()
             }).catch(err=>{
                 console.log('csp-report err:', err)
