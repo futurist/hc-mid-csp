@@ -110,6 +110,7 @@ module.exports = (app, appConfig) => {
                             x = x.trim()
                             if(x[0]!="'" && !x.endsWith(':') && x.indexOf('.')>-1 && isProtoless(x)) {
                                 const newX = `${otherProtocol}://${x}`
+                                x = `${req.protocol}://${x}`
                                 if(ret.indexOf(newX)<0) {
                                     x = x + ' ' + newX
                                 }
