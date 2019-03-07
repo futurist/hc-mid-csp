@@ -176,7 +176,7 @@ module.exports = (app, appConfig) => {
         const uaString = req.headers['user-agent']
         const uaObj = useragent.parse(uaString)
         const apiIndex = localReports.indexOf(prefix + req.path)
-        const isIgnore = check(options.ignore, req.path, req.method)
+        const isIgnore = req.xhr || check(options.ignore, req.path, req.method)
         const contentType = res.get('Content-Type') || mime.getType(req.path)
         const isForce = check(options.force, req.path, req.method)
         if(apiIndex >= 0 && isCSPPost(req)) {
