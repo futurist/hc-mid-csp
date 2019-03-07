@@ -30,6 +30,7 @@ module.exports = (app, appConfig) => {
     }
     const options = _.merge({
         override: [],
+        browser: {},
         ignore: [],
         accepts: 'text/html',
         // generate `child-src` using frameSrc + workerSrc
@@ -87,6 +88,8 @@ module.exports = (app, appConfig) => {
         _.forEach(rule, (v,key,obj)=>{
             if(typeof v==='string') {
                 obj[key] = (req, res) => {
+                    const uaString = req.headers['user-agent']
+                    const uaObj = useragent.parse(uaString)
                     let ret = v.replace('${nonce}', res.locals.cspNonce)
                     // const userAgent = useragent.parse(req.headers['user-agent'])
                     // safari don't support 'report-sample'
@@ -97,8 +100,14 @@ module.exports = (app, appConfig) => {
                     if(entry) {
                         const opt = entry.find(isObject)
                         if(opt) {
-                            const remove = [].concat(_.get(opt, 'remove.'+name) || []).flatMap(v=>v.split(/\s+/))
-                            const add = [].concat(_.get(opt, 'add.'+name) || []).flatMap(v=>v.split(/\s+/))
+                            const remove = [].concat(
+                                _.get(opt, 'remove.'+name) || [],
+                                _.get(options.browser, uaObj.family+'.remove.'+name) || []
+                            ).flatMap(v=>v.split(/\s+/))
+                            const add = [].concat(
+                                _.get(opt, 'add.'+name) || [],
+                                _.get(options.browser, uaObj.family+'.add.'+name) || []
+                            ).flatMap(v=>v.split(/\s+/))
                             ret = remove.reduce((ret,c)=>replaceString(ret, c, ''), ret)
                             ret = add.concat(ret).join(' ')
                         }
@@ -190,7 +199,7 @@ module.exports = (app, appConfig) => {
             })
         } else if(
             !isIgnore
-            && uaString && uaObj != null
+            && uaString && uaObj != null && uaObj.family
             && !/HttpClient/i.test(uaObj.family)
             && !signature
             && req.accepts(options.accepts)
