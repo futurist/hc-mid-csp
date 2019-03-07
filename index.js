@@ -32,7 +32,7 @@ module.exports = (app, appConfig) => {
         override: [],
         browser: {},
         ignore: [],
-        forceAdd: [],
+        force: [],
         accepts: 'text/html',
         // generate `child-src` using frameSrc + workerSrc
         generateChildSrc: true,
@@ -178,6 +178,7 @@ module.exports = (app, appConfig) => {
         const apiIndex = localReports.indexOf(prefix + req.path)
         const isIgnore = check(options.ignore, req.path, req.method)
         const contentType = res.get('Content-Type') || mime.getType(req.path)
+        const isForce = check(options.force, req.path, req.method)
         if(apiIndex >= 0 && isCSPPost(req)) {
             text(req, req.headers).then(val=>{
                 const json = JSON.parse(val)
@@ -200,12 +201,14 @@ module.exports = (app, appConfig) => {
                 next(err)
             })
         } else if(
-            !isIgnore
-            && uaString && uaObj != null && uaObj.family
-            && !/HttpClient/i.test(uaObj.family)
-            && !signature
-            && req.accepts(options.accepts)
-            && (!contentType || String(contentType).indexOf(mime.getType(options.accepts))>-1)
+            isForce || (
+                !isIgnore
+                && uaString && uaObj != null && uaObj.family
+                && !/HttpClient/i.test(uaObj.family)
+                && !signature
+                && req.accepts(options.accepts)
+                && (!contentType || String(contentType).indexOf(mime.getType(options.accepts))>-1)
+            )
         ) {
             const nonce = res.locals.cspNonce = uuidv4().replace(/-/g, '')
             res.set('x-csp-nonce', nonce)
