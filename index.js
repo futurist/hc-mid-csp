@@ -109,11 +109,16 @@ module.exports = (app, appConfig) => {
                         ret = ret.split(/\s+/).map(x=>{
                             x = x.trim()
                             if(x[0]!="'" && !x.endsWith(':') && x.indexOf('.')>-1 && isProtoless(x)) {
+                                const arr = []
                                 const newX = `${otherProtocol}://${x}`
                                 x = `${req.protocol}://${x}`
-                                if(ret.indexOf(newX)<0) {
-                                    x = x + ' ' + newX
+                                if(ret.indexOf(x)<0) {
+                                    arr.push(x)
                                 }
+                                if(ret.indexOf(newX)<0) {
+                                    arr.push(newX)
+                                }
+                                x = arr.join(' ')
                             }
                             return x
                         }).join(' ')
