@@ -134,6 +134,12 @@ module.exports = (app, appConfig) => {
                         }).join(' ')
                     }
 
+                    ret = ret.trim();
+
+                    if(ret && ret !== "'none'") {
+                        ret = replaceString(ret, "'none'", '')
+                    }
+
                     return ret
                 }
             }
