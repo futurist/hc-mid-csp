@@ -97,8 +97,10 @@ module.exports = (app, appConfig) => {
                     // if(/Safari/i.test(userAgent.family)){
                     //     ret = ret.replace("'report-sample'", '')
                     // }
-                    const entry = check(options.override, req.path, req.method)
-                    if(entry) {
+                    const allEntry = check(options.override, req.path, req.method, 'filter');
+                    allEntry
+                    .sort((a,b)=>((a.find(isObject)||{}).order||0) - ((b.find(isObject)||{}).order||0))
+                    .forEach((entry) => {
                         const opt = entry.find(isObject)
                         if(opt) {
                             const remove = [].concat(
@@ -112,7 +114,7 @@ module.exports = (app, appConfig) => {
                             ret = remove.reduce((ret,c)=>replaceString(ret, c, ''), ret)
                             ret = add.concat(ret).join(' ')
                         }
-                    }
+                    });
 
                     const otherProtocol = findOtherProtocol(req.protocol)
                     if(options.generateMixed[name] && otherProtocol) {
